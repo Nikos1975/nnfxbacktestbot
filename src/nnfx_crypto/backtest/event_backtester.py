@@ -13,7 +13,7 @@ from nnfx_crypto.config.loader import dump_resolved_config
 from nnfx_crypto.config.schema import StrategyConfig
 from nnfx_crypto.data.ohlcv_loader import load_ohlcv_csv
 from nnfx_crypto.indicators.registry import indicator_metadata_for_config
-from nnfx_crypto.risk.atr_risk_model import ATRRiskModel, EntryPlan
+from nnfx_crypto.risk.atr_risk_model import ATRRiskModel
 from nnfx_crypto.risk.trade_state import OpenTrade
 from nnfx_crypto.reports.chart_writer import write_equity_curve_chart, write_price_signal_chart
 from nnfx_crypto.reports.report_writer import write_report_html, write_summary_md
@@ -91,11 +91,11 @@ class EventBacktester:
             tp1_atr_multiplier=self.config.risk.tp1_atr_multiplier,
         )
         cash = self.config.backtest.initial_capital
-        open_trade: OpenTrade | None = None
-        entry_plan: EntryPlan | None = None
+        open_trades: list[OpenTrade] = []
         trades: list[TradeRecord] = []
         equity_rows: list[dict] = []
         warmup = min(self.config.backtest.warmup_bars, max(0, len(frame) - 2))
+        max_positions = self.config.risk.max_open_positions_per_pair
         trading_halted = False
         current_day: object = None
         day_start_equity: float = cash
@@ -104,7 +104,8 @@ class EventBacktester:
         for index in range(warmup, len(frame) - 1):
             row = frame.iloc[index]
             next_row = frame.iloc[index + 1]
-            marked_equity = cash + self._unrealized_pnl(open_trade, float(row["close"]))
+            mark_price = float(row["close"])
+            marked_equity = cash + sum(self._unrealized_pnl(t, mark_price) for t in open_trades)
 
             # Reset daily halt at day boundary
             bar_day = pd.Timestamp(row["timestamp"]).date()
@@ -113,112 +114,104 @@ class EventBacktester:
                 day_start_equity = marked_equity
                 daily_trading_halted = False
 
-            # Max total drawdown — permanent halt
+            # Max total drawdown — close all, permanent halt
             drawdown_limit = self.config.backtest.initial_capital * (
                 1.0 - self.config.risk.max_total_drawdown_pct
             )
-            if open_trade is not None and marked_equity <= drawdown_limit:
-                exit_price = float(row["close"])
-                cash += self._close_pnl(open_trade, exit_price, open_trade.remaining_quantity)
-                trades.append(self._record(open_trade, row, exit_price, "max_total_drawdown"))
-                open_trade = None
-                entry_plan = None
+            if open_trades and marked_equity <= drawdown_limit:
+                for t in open_trades:
+                    cash += self._close_pnl(t, mark_price, t.remaining_quantity)
+                    trades.append(self._record(t, row, mark_price, "max_total_drawdown"))
+                open_trades = []
                 trading_halted = True
 
-            # Daily loss limit — resets next day
+            # Daily loss limit — close all, resets next day
             if not daily_trading_halted and day_start_equity > 0:
                 daily_loss = (day_start_equity - marked_equity) / day_start_equity
                 if daily_loss >= self.config.risk.max_daily_loss_pct:
-                    if open_trade is not None:
-                        exit_price = float(row["close"])
-                        cash += self._close_pnl(open_trade, exit_price, open_trade.remaining_quantity)
-                        trades.append(self._record(open_trade, row, exit_price, "daily_loss_limit"))
-                        open_trade = None
-                        entry_plan = None
+                    for t in open_trades:
+                        cash += self._close_pnl(t, mark_price, t.remaining_quantity)
+                        trades.append(self._record(t, row, mark_price, "daily_loss_limit"))
+                    open_trades = []
                     daily_trading_halted = True
 
-            if open_trade is not None:
-                events = open_trade.apply_high_low(
+            # Intrabar stops, tp1, and exit signals per open trade
+            remaining: list[OpenTrade] = []
+            for trade in open_trades:
+                events = trade.apply_high_low(
                     high=float(row["high"]),
                     low=float(row["low"]),
                     move_stop_to_breakeven=self.config.risk.move_second_half_to_breakeven_after_tp1,
                     intrabar_priority=self.config.execution.intrabar_priority,
                 )
                 if "tp1" in events:
-                    half_quantity = open_trade.quantity / 2.0
-                    cash += self._close_pnl(open_trade, open_trade.tp1_price, half_quantity)
-                    trades.append(
-                        self._record(open_trade, row, open_trade.tp1_price, "tp1", half_quantity)
-                    )
+                    half_quantity = trade.quantity / 2.0
+                    cash += self._close_pnl(trade, trade.tp1_price, half_quantity)
+                    trades.append(self._record(trade, row, trade.tp1_price, "tp1", half_quantity))
                 if "stop" in events:
-                    cash += self._close_pnl(open_trade, open_trade.stop_price, open_trade.remaining_quantity)
-                    trades.append(self._record(open_trade, row, open_trade.stop_price, "stop_loss"))
-                    open_trade = None
-                    entry_plan = None
+                    cash += self._close_pnl(trade, trade.stop_price, trade.remaining_quantity)
+                    trades.append(self._record(trade, row, trade.stop_price, "stop_loss"))
                 else:
                     intent = engine.evaluate_bar(
-                        frame,
-                        index,
-                        has_open_position=True,
-                        open_position_side=open_trade.side,
+                        frame, index, has_open_position=True, open_position_side=trade.side
                     )
                     if intent is not None:
-                        exit_price = float(next_row["open"]) if self.config.execution.use_next_bar_open else float(row["close"])
-                        cash += self._close_pnl(open_trade, exit_price, open_trade.remaining_quantity)
-                        trades.append(self._record(open_trade, next_row, exit_price, intent.reason))
-                        open_trade = None
-                        entry_plan = None
+                        exit_price = float(next_row["open"]) if self.config.execution.use_next_bar_open else mark_price
+                        cash += self._close_pnl(trade, exit_price, trade.remaining_quantity)
+                        trades.append(self._record(trade, next_row, exit_price, intent.reason))
+                    else:
+                        remaining.append(trade)
+            open_trades = remaining
 
-            if open_trade is None and not trading_halted and not daily_trading_halted:
+            # New entry if position slots available
+            if len(open_trades) < max_positions and not trading_halted and not daily_trading_halted:
                 intent = engine.evaluate_bar(frame, index, has_open_position=False)
                 atr = row.get("atr")
                 if intent is not None and pd.notna(atr):
-                    entry_price = float(next_row["open"]) if self.config.execution.use_next_bar_open else float(row["close"])
+                    entry_price = float(next_row["open"]) if self.config.execution.use_next_bar_open else mark_price
                     entry_price = self._slipped_price(entry_price, intent.side, is_entry=True)
-                    entry_plan = risk_model.plan_entry(intent.side, entry_price, float(atr))
+                    plan = risk_model.plan_entry(intent.side, entry_price, float(atr))
                     if intent.side == "long":
-                        open_trade = OpenTrade.open_long(
+                        open_trades.append(OpenTrade.open_long(
                             self.config.market.trading_pair,
                             index + 1,
-                            entry_plan.entry_price,
-                            entry_plan.total_quantity,
-                            entry_plan.stop_price,
-                            entry_plan.tp1_price,
+                            plan.entry_price,
+                            plan.total_quantity,
+                            plan.stop_price,
+                            plan.tp1_price,
                             str(next_row["timestamp"]),
-                        )
+                        ))
                     else:
-                        open_trade = OpenTrade.open_short(
+                        open_trades.append(OpenTrade.open_short(
                             self.config.market.trading_pair,
                             index + 1,
-                            entry_plan.entry_price,
-                            entry_plan.total_quantity,
-                            entry_plan.stop_price,
-                            entry_plan.tp1_price,
+                            plan.entry_price,
+                            plan.total_quantity,
+                            plan.stop_price,
+                            plan.tp1_price,
                             str(next_row["timestamp"]),
-                        )
+                        ))
 
-            equity_rows.append(
-                {
-                    "timestamp": row["timestamp"],
-                    "equity": cash + self._unrealized_pnl(open_trade, float(row["close"])),
-                    "close": row["close"],
-                    "open_position": int(open_trade is not None),
-                }
-            )
+            equity_rows.append({
+                "timestamp": row["timestamp"],
+                "equity": cash + sum(self._unrealized_pnl(t, mark_price) for t in open_trades),
+                "close": row["close"],
+                "open_position": int(bool(open_trades)),
+            })
 
-        if open_trade is not None and entry_plan is not None:
+        # Close all remaining trades at end of data
+        if open_trades:
             final_row = frame.iloc[-1]
             exit_price = float(final_row["close"])
-            cash += self._close_pnl(open_trade, exit_price, open_trade.remaining_quantity)
-            trades.append(self._record(open_trade, final_row, exit_price, "end_of_data"))
-            equity_rows.append(
-                {
-                    "timestamp": final_row["timestamp"],
-                    "equity": cash,
-                    "close": final_row["close"],
-                    "open_position": 0,
-                }
-            )
+            for t in open_trades:
+                cash += self._close_pnl(t, exit_price, t.remaining_quantity)
+                trades.append(self._record(t, final_row, exit_price, "end_of_data"))
+            equity_rows.append({
+                "timestamp": final_row["timestamp"],
+                "equity": cash,
+                "close": final_row["close"],
+                "open_position": 0,
+            })
 
         return pd.DataFrame(equity_rows), trades
 
