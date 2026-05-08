@@ -42,7 +42,7 @@ def calculate_metrics(
         "profit_factor": gross_win / gross_loss if gross_loss else 0.0,
         "expectancy": float(trades["pnl"].mean()) if total_trades else 0.0,
         "sharpe_ratio": float(returns.mean() / returns.std() * np.sqrt(365)) if len(returns) > 1 and returns.std() else 0.0,
-        "sortino_ratio": 0.0,
+        "sortino_ratio": _sortino_ratio(returns),
         "win_rate": float((trades["pnl"] > 0).mean()) if total_trades else 0.0,
         "accuracy": float((trades["pnl"] > 0).mean()) if total_trades else 0.0,
         "total_trades": total_trades,
@@ -60,7 +60,7 @@ def calculate_metrics(
             else 0.0
         ),
         "time_underwater": float((drawdown < 0).mean()) if not drawdown.empty else 0.0,
-        "average_trade_duration": 0.0,
+        "average_trade_duration": _avg_trade_duration_hours(trades),
         "fees_paid": float(trades["fees"].sum()) if total_trades else 0.0,
         "slippage_cost": float(trades["slippage"].sum()) if total_trades else 0.0,
         "total_volume": total_volume,
@@ -85,6 +85,26 @@ def _max_consecutive_losses(trades: pd.DataFrame) -> int:
         else:
             current = 0
     return max_seen
+
+
+def _sortino_ratio(returns: pd.Series) -> float:
+    if len(returns) < 2:
+        return 0.0
+    downside = returns[returns < 0]
+    if downside.empty:
+        return 0.0
+    downside_dev = float(np.sqrt((downside ** 2).mean()))
+    return float(returns.mean() / downside_dev * np.sqrt(365)) if downside_dev > 0 else 0.0
+
+
+def _avg_trade_duration_hours(trades: pd.DataFrame) -> float:
+    if trades.empty or "entry_time" not in trades.columns or "exit_time" not in trades.columns:
+        return 0.0
+    entry = pd.to_datetime(trades["entry_time"], errors="coerce")
+    exit_ = pd.to_datetime(trades["exit_time"], errors="coerce")
+    durations = (exit_ - entry).dt.total_seconds() / 3600.0
+    valid = durations.dropna()
+    return float(valid.mean()) if not valid.empty else 0.0
 
 
 def _buy_and_hold_return(equity_curve: pd.DataFrame) -> float:

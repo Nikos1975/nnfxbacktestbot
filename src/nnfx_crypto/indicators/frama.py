@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import math
-
 import numpy as np
 import pandas as pd
 
@@ -19,41 +17,38 @@ class FRAMAIndicator:
         close = output["close"].astype(float)
         high = output["high"].astype(float)
         low = output["low"].astype(float)
-        frama = pd.Series(np.nan, index=output.index, dtype=float)
 
         fast_alpha = 2.0 / (fc + 1.0)
         slow_alpha = 2.0 / (sc + 1.0)
 
-        for pos in range(len(output)):
-            if pos < 2 * length:
-                continue
-            recent_start = pos - length + 1
-            recent_end = pos + 1
-            previous_start = pos - (2 * length) + 1
-            previous_end = pos - length + 1
-            full_start = previous_start
-            full_end = recent_end
+        # Vectorised rolling windows — replaces per-bar iloc slicing
+        roll_high_n = high.rolling(length).max()
+        roll_low_n = low.rolling(length).min()
+        roll_high_2n = high.rolling(2 * length).max()
+        roll_low_2n = low.rolling(2 * length).min()
 
-            n1 = (high.iloc[recent_start:recent_end].max() - low.iloc[recent_start:recent_end].min()) / length
-            n2 = (
-                high.iloc[previous_start:previous_end].max()
-                - low.iloc[previous_start:previous_end].min()
-            ) / length
-            n3 = (high.iloc[full_start:full_end].max() - low.iloc[full_start:full_end].min()) / (
-                2.0 * length
-            )
-            if n1 > 0 and n2 > 0 and n3 > 0:
-                dimension = (math.log(n1 + n2) - math.log(n3)) / math.log(2)
-                alpha = math.exp(-4.6 * (dimension - 1.0))
-                alpha = min(fast_alpha, max(slow_alpha, alpha))
-            else:
-                alpha = slow_alpha
+        n1 = (roll_high_n - roll_low_n) / length
+        n2 = (roll_high_n.shift(length) - roll_low_n.shift(length)) / length
+        n3 = (roll_high_2n - roll_low_2n) / (2 * length)
 
-            previous = frama.iloc[pos - 1]
-            if np.isnan(previous):
-                previous = price.iloc[pos - 1]
-            frama.iloc[pos] = alpha * price.iloc[pos] + (1.0 - alpha) * previous
+        valid = (n1 > 0) & (n2 > 0) & (n3 > 0)
+        with np.errstate(divide="ignore", invalid="ignore"):
+            d = np.where(valid, (np.log(n1 + n2) - np.log(n3)) / np.log(2.0), np.nan)
+        alpha_arr = np.where(valid, np.exp(-4.6 * (d - 1.0)), slow_alpha)
+        alpha_arr = np.clip(alpha_arr, slow_alpha, fast_alpha)
 
+        # EMA recursion — sequential dependency, unavoidable Python loop
+        price_arr = price.to_numpy(dtype=float)
+        frama_arr = np.full(len(output), np.nan)
+        start = 2 * length
+        if start < len(output):
+            frama_arr[start] = price_arr[start]
+            for i in range(start + 1, len(output)):
+                prev = frama_arr[i - 1]
+                a = alpha_arr[i] if not np.isnan(alpha_arr[i]) else slow_alpha
+                frama_arr[i] = a * price_arr[i] + (1.0 - a) * (price_arr[i - 1] if np.isnan(prev) else prev)
+
+        frama = pd.Series(frama_arr, index=output.index)
         output["baseline_value"] = frama
         output["baseline_signal"] = np.select(
             [close > frama, close < frama],

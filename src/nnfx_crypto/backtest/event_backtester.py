@@ -97,11 +97,23 @@ class EventBacktester:
         equity_rows: list[dict] = []
         warmup = min(self.config.backtest.warmup_bars, max(0, len(frame) - 2))
         trading_halted = False
+        current_day: object = None
+        day_start_equity: float = cash
+        daily_trading_halted: bool = False
 
         for index in range(warmup, len(frame) - 1):
             row = frame.iloc[index]
             next_row = frame.iloc[index + 1]
             marked_equity = cash + self._unrealized_pnl(open_trade, float(row["close"]))
+
+            # Reset daily halt at day boundary
+            bar_day = pd.Timestamp(row["timestamp"]).date()
+            if bar_day != current_day:
+                current_day = bar_day
+                day_start_equity = marked_equity
+                daily_trading_halted = False
+
+            # Max total drawdown — permanent halt
             drawdown_limit = self.config.backtest.initial_capital * (
                 1.0 - self.config.risk.max_total_drawdown_pct
             )
@@ -112,6 +124,18 @@ class EventBacktester:
                 open_trade = None
                 entry_plan = None
                 trading_halted = True
+
+            # Daily loss limit — resets next day
+            if not daily_trading_halted and day_start_equity > 0:
+                daily_loss = (day_start_equity - marked_equity) / day_start_equity
+                if daily_loss >= self.config.risk.max_daily_loss_pct:
+                    if open_trade is not None:
+                        exit_price = float(row["close"])
+                        cash += self._close_pnl(open_trade, exit_price, open_trade.remaining_quantity)
+                        trades.append(self._record(open_trade, row, exit_price, "daily_loss_limit"))
+                        open_trade = None
+                        entry_plan = None
+                    daily_trading_halted = True
 
             if open_trade is not None:
                 events = open_trade.apply_high_low(
@@ -145,7 +169,7 @@ class EventBacktester:
                         open_trade = None
                         entry_plan = None
 
-            if open_trade is None and not trading_halted:
+            if open_trade is None and not trading_halted and not daily_trading_halted:
                 intent = engine.evaluate_bar(frame, index, has_open_position=False)
                 atr = row.get("atr")
                 if intent is not None and pd.notna(atr):
