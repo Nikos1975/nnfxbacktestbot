@@ -400,3 +400,65 @@ def test_max_open_positions_allows_second_entry(tmp_path: Path):
     # Both entry signals fired and both positions opened
     assert len([r for r in trades["close_reason"] if r in {"end_of_data", "stop_loss", "tp1"}]) >= 2
     assert len(trades) >= 2
+
+
+def test_backtester_stops_after_daily_loss_breach(tmp_path: Path):
+    # Day 1: entry at bar 1, loss triggers daily halt at bar 3
+    # Day 2: daily halt resets, second entry fires and closes end-of-data
+    rows = []
+    prices_day1 = [100, 101, 100, 80]
+    prices_day2 = [120, 121, 122, 123]
+    timestamps = (
+        [pd.Timestamp("2024-01-01") + pd.Timedelta(hours=i) for i in range(4)]
+        + [pd.Timestamp("2024-01-02") + pd.Timedelta(hours=i) for i in range(4)]
+    )
+    for index, (ts, close) in enumerate(zip(timestamps, prices_day1 + prices_day2)):
+        rows.append({
+            "timestamp": ts,
+            "open": close, "high": close + 0.1, "low": close - 0.1,
+            "close": close, "volume": 1000,
+            "atr": 50.0,
+            "baseline_signal": 1 if index in {1, 5} else 0,
+            "c1_signal": 1 if index in {1, 5} else 0,
+            "c2_signal": 1,
+            "filter_pass_long": True, "filter_pass_short": True,
+            "exit_signal": 0,
+        })
+    frame = pd.DataFrame(rows)
+    csv_path = tmp_path / "BTC-USDT_1h.csv"
+    config_path = tmp_path / "strategy.yml"
+    output_root = tmp_path / "results"
+    write_ohlcv_csv(csv_path)
+    write_config(config_path, csv_path, output_root)
+    config = load_strategy_config(config_path)
+    config.backtest.warmup_bars = 0
+    config.risk.max_daily_loss_pct = 0.0005
+    config.risk.max_total_drawdown_pct = 0.99
+
+    class StubEngine:
+        def __init__(self, _config):
+            pass
+
+        def compute_indicators(self, _raw):
+            return frame
+
+        def evaluate_bar(self, data, row_index, has_open_position=False, open_position_side=None):
+            if not has_open_position and row_index in {1, 5}:
+                from nnfx_crypto.signals.signal_types import TradeIntent
+                return TradeIntent("entry", "long", "test_entry", row_index, data.iloc[row_index]["timestamp"])
+            return None
+
+    import nnfx_crypto.backtest.event_backtester as event_backtester
+    original_engine = event_backtester.NNFXSignalEngine
+    event_backtester.NNFXSignalEngine = StubEngine
+    try:
+        result = EventBacktester(config, output_root=output_root).run()
+    finally:
+        event_backtester.NNFXSignalEngine = original_engine
+
+    trades = pd.read_csv(result.run_dir / "trades.csv")
+    close_reasons = set(trades["close_reason"])
+    assert "daily_loss_limit" in close_reasons
+    # Day-2 trade closes end-of-data (daily halt reset)
+    assert "end_of_data" in close_reasons
+    assert len(trades) == 2
