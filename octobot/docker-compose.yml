@@ -1,0 +1,11 @@
+﻿services:
+  octobot:
+    image: drakkarsoftware/octobot:stable
+    container_name: OctoBot
+    restart: unless-stopped
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./user:/octobot/user
+      - ./tentacles:/octobot/tentacles
+      - ./logs:/octobot/logs

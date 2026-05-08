@@ -1,0 +1,12 @@
+portfolio:
+  name: portfolio_algo5
+  strategies:
+    - configs/nnfx_crypto/algo5_fractal_rigidity_btc_1h.yml
+    - configs/nnfx_crypto/algo5_fractal_rigidity_btc_4h.yml
+    - configs/nnfx_crypto/algo5_fractal_rigidity_btc_1d.yml
+    - configs/nnfx_crypto/algo5_fractal_rigidity_eth_1h.yml
+    - configs/nnfx_crypto/algo5_fractal_rigidity_eth_4h.yml
+    - configs/nnfx_crypto/algo5_fractal_rigidity_eth_1d.yml
+    - configs/nnfx_crypto/algo5_fractal_rigidity_sol_1h.yml
+    - configs/nnfx_crypto/algo5_fractal_rigidity_sol_4h.yml
+    - configs/nnfx_crypto/algo5_fractal_rigidity_sol_1d.yml

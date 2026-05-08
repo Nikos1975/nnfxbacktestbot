@@ -1,0 +1,33 @@
+controller_name: nnfx_algo5_controller
+controller_type: directional_trading
+connector_name: binance_perpetual
+trading_pair: BTC-USDT
+timeframe: 1h
+direction_mode: both
+allow_continuation_trades: false
+nnfx:
+  baseline:
+    name: frama
+    params: {length: 10, fc: 1, sc: 198}
+  c1:
+    name: reflex
+    params: {length: 50}
+  c2:
+    name: stablefx
+    params: {length: 14, signal_length: 5}
+  volume_or_volatility_filter:
+    name: stiffness
+    params: {length: 60, threshold: 50.0}
+  exit:
+    name: crossroads
+    params: {fast_length: 2, slow_length: 24}
+risk:
+  risk_per_trade_pct: 0.005
+  atr_length: 14
+  stop_loss_atr_multiplier: 1.25
+  tp1_atr_multiplier: 1.0
+  max_open_positions_per_pair: 1
+execution:
+  leverage: 1
+  position_mode: ONEWAY
+  order_type: MARKET

@@ -1,0 +1,4 @@
+max_capital_per_bot: 1000
+max_symbol_exposure: 1000
+max_drawdown_pct: 0.15
+kill_switch_enabled: true

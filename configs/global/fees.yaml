@@ -1,0 +1,7 @@
+exchanges:
+  binance_spot:
+    maker_fee: 0.001
+    taker_fee: 0.001
+  bybit_spot:
+    maker_fee: 0.001
+    taker_fee: 0.001

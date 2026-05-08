@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(claude plugin list)",
+      "Bash(claude plugin list *)",
+      "Bash(claude plugin marketplace list)",
+      "Bash(claude plugin marketplace list *)",
+      "Bash(.venv/Scripts/python.exe -m pytest tests/ *)",
+      "Bash(.venv/Scripts/python.exe -m pytest *)",
+      "WebFetch(domain:raw.githubusercontent.com)"
+    ]
+  }
+}

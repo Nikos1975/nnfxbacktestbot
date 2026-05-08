@@ -1,0 +1,17 @@
+symbol: BTCUSDT
+timeframe: 1d
+initial_cash: 10000
+lower_bound: 3000
+upper_bound: 75000
+grid_count: 30
+order_size_quote: 100
+fee_rate: 0.001
+slippage_rate: 0.0005
+regime:
+  adx_period: 14
+  chop_period: 14
+  active_adx_max: 20
+  transition_adx_min: 20
+  transition_adx_max: 25
+  chop_active_min: 61.8
+  chop_pause_max: 38.2

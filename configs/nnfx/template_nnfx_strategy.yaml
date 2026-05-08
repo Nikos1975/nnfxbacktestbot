@@ -1,0 +1,16 @@
+symbol: BTCUSDT
+timeframe: 1d
+baseline:
+  type: ema
+  period: 50
+c1:
+  type: placeholder
+c2:
+  type: placeholder
+volume_filter:
+  type: placeholder
+exit:
+  type: baseline_cross
+risk:
+  risk_per_trade_pct: 0.01
+  max_open_trades: 3

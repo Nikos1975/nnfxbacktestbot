@@ -1,0 +1,69 @@
+{
+    "config": {
+        "crypto-currencies": {
+            "Bitcoin": {
+                "enabled": true,
+                "pairs": [
+                    "BTC/USDT"
+                ]
+            },
+            "Ethereum": {
+                "pairs": [
+                    "ETH/USDT"
+                ]
+            },
+            "Solana": {
+                "pairs": [
+                    "SOL/USDT"
+                ]
+            },
+            "TRON": {
+                "pairs": [
+                    "TRX/USDT"
+                ]
+            }
+        },
+        "distribution": "default",
+        "exchanges": {
+            "binance": {
+                "enabled": true,
+                "exchange-type": "spot"
+            }
+        },
+        "trader": {
+            "enabled": false,
+            "load-trade-history": true
+        },
+        "trader-simulator": {
+            "enabled": false,
+            "fees": {
+                "maker": 0.015,
+                "taker": 0.015
+            },
+            "starting-portfolio": {
+                "ETH": 100,
+                "USDT": 100000
+            }
+        },
+        "trading": {
+            "reference-market": "USDT",
+            "risk": 0.5
+        }
+    },
+    "profile": {
+        "auto_update": false,
+        "avatar": "default_profile.png",
+        "complexity": 1,
+        "description": "GridTrading is a profile configured to create a pre-defined amount of buy and sell orders at fixed intervals to profit from any market move. When an order is filled, a mirror order is instantly created and generates profit when completed. GridTrading is a simpler version of the StaggeredOrdersTradingMode.",
+        "extra_backtesting_time_frames": [],
+        "hidden": false,
+        "id": "grid_trading",
+        "imported": false,
+        "name": "Grid Trading",
+        "origin_url": null,
+        "read_only": true,
+        "risk": 1,
+        "slug": "",
+        "type": "live"
+    }
+}

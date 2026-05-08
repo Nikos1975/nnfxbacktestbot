@@ -1,0 +1,94 @@
+{
+  "generated_on": "2026-05-08",
+  "source_url": "https://stonehillforex.com/indicator-library/",
+  "downloads_dir": "research/stonehill_indicators/downloads",
+  "extracted_dir": "research/stonehill_indicators/extracted",
+  "downloads": [
+    {
+      "name": "Cross_Roads.zip",
+      "relative_path": "Cross_Roads.zip",
+      "extension": ".zip",
+      "size_bytes": 8668,
+      "sha256": "acd99b84a92a444bae6d409d3f3ff0d74ba7aa1fcf63fbbed924d34109b01d4a"
+    },
+    {
+      "name": "FRAMA.zip",
+      "relative_path": "FRAMA.zip",
+      "extension": ".zip",
+      "size_bytes": 13334,
+      "sha256": "b571aa0b7cf8fc701d86687485040cde8fb12a36e2081fa9756463489eef1161"
+    },
+    {
+      "name": "reflex.zip",
+      "relative_path": "reflex.zip",
+      "extension": ".zip",
+      "size_bytes": 15851,
+      "sha256": "a875605fc85acf145b1e67141ca34c4a35a14e2f2cc0c3a09744c79132d6a51f"
+    },
+    {
+      "name": "Stable_nrp.zip",
+      "relative_path": "Stable_nrp.zip",
+      "extension": ".zip",
+      "size_bytes": 11393,
+      "sha256": "b1f03c32def6f889389c58a8fd658624ade0e2a177a0ef9cb51b4912570e1f73"
+    },
+    {
+      "name": "Stiffness.zip",
+      "relative_path": "Stiffness.zip",
+      "extension": ".zip",
+      "size_bytes": 21668,
+      "sha256": "83958ed08c6633842cebfb41a73862ff4c582a281306664ccfa56314b01e14dc"
+    }
+  ],
+  "extracted_files": [
+    {
+      "name": "Cross_Roads.ex4",
+      "relative_path": "Cross_Roads/Cross_Roads.ex4",
+      "extension": ".ex4",
+      "size_bytes": 8646,
+      "sha256": "8fc294ab9fa3cb685ec70c512fd73c778e7c2e3d1bd042ba28edc01a7c84a6a8"
+    },
+    {
+      "name": "frama-indicator.ex4",
+      "relative_path": "FRAMA/frama-indicator.ex4",
+      "extension": ".ex4",
+      "size_bytes": 11806,
+      "sha256": "1afb20896e226763549fd8f8d90968b5f7388f31be33c37c23cdfc1c5bbdb553"
+    },
+    {
+      "name": "frama-indicator.mq4",
+      "relative_path": "FRAMA/frama-indicator.mq4",
+      "extension": ".mq4",
+      "size_bytes": 3665,
+      "sha256": "b6ab437ae5b1acca27f99baacd08963a87f4d262d4ef73eb888be841449bfd66"
+    },
+    {
+      "name": "reflex.ex4",
+      "relative_path": "reflex/reflex.ex4",
+      "extension": ".ex4",
+      "size_bytes": 15880,
+      "sha256": "b42f965db09e2af83329882a15d2039d95c17275d8a2f923c918e843f7c6a8d1"
+    },
+    {
+      "name": "Stable_nrp.ex4",
+      "relative_path": "Stable_nrp/Stable_nrp.ex4",
+      "extension": ".ex4",
+      "size_bytes": 11356,
+      "sha256": "a2f905959684ebdfed65be9cc7e1a6b0003aadc65ffd883732f49d43a61bd5cd"
+    },
+    {
+      "name": "Stiffness Indicator.ex4",
+      "relative_path": "Stiffness/Stiffness Indicator.ex4",
+      "extension": ".ex4",
+      "size_bytes": 17900,
+      "sha256": "1fb09d97a42fb79075f11070a697aa0673e2e0a9fc4fc843cfde3835273ebd86"
+    },
+    {
+      "name": "Stiffness Indicator.mq4",
+      "relative_path": "Stiffness/Stiffness Indicator.mq4",
+      "extension": ".mq4",
+      "size_bytes": 10905,
+      "sha256": "4fbf75bf7105a49305b552ab20be6778a7871660cfff4a316cf1abfea086faf5"
+    }
+  ]
+}

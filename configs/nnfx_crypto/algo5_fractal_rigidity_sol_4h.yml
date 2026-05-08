@@ -1,0 +1,20 @@
+strategy:
+  name: algo5_fractal_rigidity
+  mode: backtest
+  direction_mode: both
+  allow_continuation_trades: false
+market:
+  connector: binance_perpetual
+  trading_pair: SOL-USDT
+  timeframe: 4h
+  quote_asset: USDT
+  base_asset: SOL
+data:
+  source: csv
+  path: data/nnfx_crypto/processed/SOL-USDT_4h.csv
+indicators:
+  baseline: {name: frama, params: {length: 10, fc: 1, sc: 198}}
+  c1: {name: reflex, params: {length: 50}}
+  c2: {name: stablefx, params: {length: 14, signal_length: 5}}
+  volume_or_volatility_filter: {name: stiffness, params: {length: 60, threshold: 50.0}}
+  exit: {name: crossroads, params: {fast_length: 2, slow_length: 24}}
