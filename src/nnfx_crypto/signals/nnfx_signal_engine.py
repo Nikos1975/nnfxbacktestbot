@@ -103,22 +103,28 @@ class NNFXSignalEngine:
                 df["c1_signal"] = np.select(
                     [(val > 0) & (prev <= 0), (val < 0) & (prev >= 0)], [1, -1], default=0
                 ).astype(int)
-            # Add other C1 mappings here if needed
+            elif indicator_name == "zero_lag_macd":
+                df["c1_signal"] = df["zero_lag_macd_trend"]
 
         elif role == "c2":
             if indicator_name == "crossroads":
                 df["c2_signal"] = df["crossroads_trend"]
-            # Add other C2 mappings here
+            elif indicator_name == "zero_lag_macd":
+                df["c2_signal"] = df["zero_lag_macd_trend"]
 
         elif role == "exit":
             if indicator_name == "crossroads":
                 df["exit_signal"] = df["crossroads_signal"]
-            # Add other Exit mappings here
+            elif indicator_name == "perfect_trend_line":
+                df["exit_signal"] = df["perfect_trend_line_exit_signal"]
 
         elif role == "volume":
-            # Volume filter typically sets filter_pass_long/short directly
-            # We preserve this but could also map from a 'volume_value' if needed.
-            pass
+            if indicator_name == "rvol":
+                df["filter_pass_long"] = df["rvol_filter_signal"] == 1
+                df["filter_pass_short"] = df["rvol_filter_signal"] == 1
+            elif indicator_name == "stiffness":
+                # Assuming stiffness already sets filter_pass_long/short or we map it here
+                pass
 
     def evaluate_bar(
         self,

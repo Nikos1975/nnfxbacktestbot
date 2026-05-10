@@ -1,0 +1,68 @@
+backtest:
+  export_chart_png: true
+  export_equity_curve_csv: true
+  export_html_report: true
+  export_metrics_json: true
+  export_trades_csv: true
+  initial_capital: 100000
+  warmup_bars: 300
+data:
+  end: '2026-05-09'
+  path: data/nnfx_crypto/processed/ETH-USDT_4h.csv
+  source: csv
+  start: '2018-01-01'
+execution:
+  fee_pct: 0.0006
+  order_type: market
+  slippage_pct: 0.0005
+  use_next_bar_open: true
+indicators:
+  baseline:
+    name: frama
+    params:
+      fc: 1
+      length: 10
+      sc: 198
+  c1:
+    name: zero_lag_macd
+    params:
+      fast_length: 86
+      signal_length: 2
+      slow_length: 85
+      source: close
+  c2:
+    name: crossroads
+    params:
+      lookback_period: 24
+      source: close
+  exit:
+    name: crossroads
+    params:
+      lookback_period: 24
+      source: close
+  volume_or_volatility_filter:
+    name: none
+    params: {}
+market:
+  base_asset: BTC
+  connector: binance_perpetual
+  quote_asset: USDT
+  timeframe: 4h
+  trading_pair: ETH-USDT
+risk:
+  account_equity: 100000
+  atr_length: 14
+  max_daily_loss_pct: 0.02
+  max_open_positions_per_pair: 1
+  max_total_drawdown_pct: 0.2
+  max_total_open_positions: 3
+  move_second_half_to_breakeven_after_tp1: false
+  risk_per_trade_pct: 0.02
+  stop_loss_atr_multiplier: 3.0
+  tp1_atr_multiplier: 1.5
+  use_two_half_positions: true
+strategy:
+  allow_continuation_trades: false
+  direction_mode: both
+  mode: backtest
+  name: eth_risk_diag_SL3.0_TP1.5_BEfalse

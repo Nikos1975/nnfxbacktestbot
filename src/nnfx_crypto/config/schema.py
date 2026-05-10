@@ -64,7 +64,7 @@ class IndicatorsSection(StrictModel):
     @field_validator("baseline", "c1", "c2", "volume_or_volatility_filter", "exit")
     @classmethod
     def indicator_must_be_registered(cls, value: IndicatorConfig) -> IndicatorConfig:
-        known = {"frama", "reflex", "stablefx", "stiffness", "crossroads", "atr", "none"}
+        known = {"frama", "reflex", "stablefx", "stiffness", "crossroads", "atr", "none", "rvol", "perfect_trend_line", "zero_lag_macd"}
         if value.name.lower() not in known:
             known_text = ", ".join(sorted(known))
             raise ValueError(f"Unknown indicator '{value.name}'. Known indicators: {known_text}")

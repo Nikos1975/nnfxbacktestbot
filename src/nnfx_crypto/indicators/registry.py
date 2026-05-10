@@ -11,6 +11,9 @@ from nnfx_crypto.indicators.stiffness import StiffnessIndicator
 
 
 from nnfx_crypto.indicators.pass_filter import PassIndicator
+from nnfx_crypto.indicators.rvol import RVOLIndicator
+from nnfx_crypto.indicators.perfect_trend_line import PerfectTrendLineIndicator
+from nnfx_crypto.indicators.zero_lag_macd import ZeroLagMACDIndicator
 
 
 INDICATOR_REGISTRY = {
@@ -21,6 +24,9 @@ INDICATOR_REGISTRY = {
     "crossroads": CrossRoadsIndicator,
     "atr": ATRIndicator,
     "none": PassIndicator,
+    "rvol": RVOLIndicator,
+    "perfect_trend_line": PerfectTrendLineIndicator,
+    "zero_lag_macd": ZeroLagMACDIndicator,
 }
 
 @dataclass(frozen=True)
@@ -81,6 +87,27 @@ INDICATOR_METADATA = {
         source_type="system",
         source_path=None,
         notes="System bypass for disabled filters.",
+    ),
+    "rvol": IndicatorMetadata(
+        name="rvol",
+        status="internal",
+        source_type="system",
+        source_path=None,
+        notes="Crypto-native volume participation filter (Volume / SMA).",
+    ),
+    "perfect_trend_line": IndicatorMetadata(
+        name="perfect_trend_line",
+        status="approximation",
+        source_type="formula",
+        source_path=None,
+        notes="ATR-based trailing trend indicator for exit logic.",
+    ),
+    "zero_lag_macd": IndicatorMetadata(
+        name="zero_lag_macd",
+        status="internal",
+        source_type="formula",
+        source_path=None,
+        notes="DEMA-based high-responsiveness MACD for confirmation.",
     ),
 }
 

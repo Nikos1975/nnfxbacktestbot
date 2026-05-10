@@ -1,0 +1,111 @@
+strategy:
+  name: eth_4h_zlmacd_exit_exit_LB30_SLEN3
+  mode: backtest
+  direction_mode: both
+  allow_continuation_trades: false
+market:
+  connector: binance_perpetual
+  trading_pair: ETH-USDT
+  timeframe: 4h
+  quote_asset: USDT
+  base_asset: BTC
+data:
+  source: csv
+  path: data/nnfx_crypto/processed/ETH-USDT_4h.csv
+  start: '2018-01-01'
+  end: '2026-05-09'
+indicators:
+  baseline:
+    name: frama
+    params:
+      fc: 1
+      length: 10
+      sc: 198
+  c1:
+    name: zero_lag_macd
+    params:
+      fast_length: 86
+      slow_length: 85
+      signal_length: 2
+      source: close
+  c2:
+    name: crossroads
+    params:
+      start_len: 1
+      lookback_period: 24
+      source: close
+  volume_or_volatility_filter:
+    name: none
+    params: {}
+  exit:
+    name: crossroads
+    params:
+      start_len: 3
+      lookback_period: 30
+      source: close
+risk:
+  account_equity: 100000.0
+  risk_per_trade_pct: 0.02
+  atr_length: 14
+  stop_loss_atr_multiplier: 2.0
+  tp1_atr_multiplier: 1.5
+  use_two_half_positions: true
+  move_second_half_to_breakeven_after_tp1: false
+  max_open_positions_per_pair: 1
+  max_total_open_positions: 3
+  max_daily_loss_pct: 0.02
+  max_total_drawdown_pct: 0.2
+execution:
+  order_type: market
+  fee_pct: 0.0006
+  slippage_pct: 0.0005
+  use_next_bar_open: true
+  intrabar_priority: stop_loss
+  leverage: 1.0
+  position_mode: ONEWAY
+backtest:
+  warmup_bars: 300
+  initial_capital: 100000.0
+  export_trades_csv: true
+  export_equity_curve_csv: true
+  export_metrics_json: true
+  export_html_report: true
+  export_chart_png: true
+indicator_metadata:
+  baseline:
+    name: frama
+    status: source_port
+    source_type: mq4
+    source_path: research/stonehill_indicators/extracted/FRAMA/frama-indicator.mq4
+    notes: Ported from Stonehill MQ4 two-window FRAMA structure with PriceType 0..6
+      support.
+  c1:
+    name: zero_lag_macd
+    status: internal
+    source_type: formula
+    source_path: null
+    notes: DEMA-based high-responsiveness MACD for confirmation.
+  c2:
+    name: crossroads
+    status: approximation
+    source_type: ex4_only
+    source_path: research/stonehill_indicators/extracted/Cross_Roads/Cross_Roads.ex4
+    notes: Approximated from public description using highest/lowest WMA filters.
+  volume_or_volatility_filter:
+    name: none
+    status: internal
+    source_type: system
+    source_path: null
+    notes: System bypass for disabled filters.
+  exit:
+    name: crossroads
+    status: approximation
+    source_type: ex4_only
+    source_path: research/stonehill_indicators/extracted/Cross_Roads/Cross_Roads.ex4
+    notes: Approximated from public description using highest/lowest WMA filters.
+  atr:
+    name: atr
+    status: standard
+    source_type: formula
+    source_path: null
+    notes: Standard rolling average true range implementation.
