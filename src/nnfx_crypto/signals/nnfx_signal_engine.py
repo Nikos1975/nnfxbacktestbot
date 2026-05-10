@@ -163,14 +163,14 @@ class NNFXSignalEngine:
             and int(row.get("baseline_signal", 0)) == 1
             and int(row.get("c1_signal", 0)) == 1
             and int(row.get("c2_signal", 0)) == 1
-            and bool(row.get("filter_pass_long", False))
+            and bool(row.get("filter_pass_long", True))
         )
         short_entry = (
             self.direction_mode in {"short_only", "both"}
             and int(row.get("baseline_signal", 0)) == -1
             and int(row.get("c1_signal", 0)) == -1
             and int(row.get("c2_signal", 0)) == -1
-            and bool(row.get("filter_pass_short", False))
+            and bool(row.get("filter_pass_short", True))
         )
 
         if long_entry:

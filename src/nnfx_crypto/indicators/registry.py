@@ -10,6 +10,9 @@ from nnfx_crypto.indicators.stablefx import StableFXIndicator
 from nnfx_crypto.indicators.stiffness import StiffnessIndicator
 
 
+from nnfx_crypto.indicators.pass_filter import PassIndicator
+
+
 INDICATOR_REGISTRY = {
     "frama": FRAMAIndicator,
     "reflex": ReflexIndicator,
@@ -17,6 +20,7 @@ INDICATOR_REGISTRY = {
     "stiffness": StiffnessIndicator,
     "crossroads": CrossRoadsIndicator,
     "atr": ATRIndicator,
+    "none": PassIndicator,
 }
 
 @dataclass(frozen=True)
@@ -70,6 +74,13 @@ INDICATOR_METADATA = {
         source_type="formula",
         source_path=None,
         notes="Standard rolling average true range implementation.",
+    ),
+    "none": IndicatorMetadata(
+        name="none",
+        status="internal",
+        source_type="system",
+        source_path=None,
+        notes="System bypass for disabled filters.",
     ),
 }
 

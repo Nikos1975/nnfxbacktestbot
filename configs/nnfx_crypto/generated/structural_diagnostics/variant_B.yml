@@ -1,0 +1,109 @@
+backtest:
+  export_chart_png: true
+  export_equity_curve_csv: true
+  export_html_report: true
+  export_metrics_json: true
+  export_trades_csv: true
+  initial_capital: 100000.0
+  warmup_bars: 300
+data:
+  end: '2026-05-09'
+  path: data/nnfx_crypto/processed/BTC-USDT_1d.csv
+  source: csv
+  start: '2018-01-01'
+execution:
+  fee_pct: 0.0006
+  intrabar_priority: stop_loss
+  leverage: 1.0
+  order_type: market
+  position_mode: ONEWAY
+  slippage_pct: 0.0005
+  use_next_bar_open: true
+indicator_metadata:
+  atr:
+    name: atr
+    notes: Standard rolling average true range implementation.
+    source_path: null
+    source_type: formula
+    status: standard
+  baseline:
+    name: frama
+    notes: Ported from Stonehill MQ4 two-window FRAMA structure with PriceType 0..6
+      support.
+    source_path: research/stonehill_indicators/extracted/FRAMA/frama-indicator.mq4
+    source_type: mq4
+    status: source_port
+  c1:
+    name: reflex
+    notes: Ported from John Ehlers TASC Feb 2020 public formula. Replaces EX4-only
+      placeholder.
+    source_path: null
+    source_type: formula
+    status: placeholder
+  c2:
+    name: crossroads
+    notes: Approximated from public description using highest/lowest WMA filters.
+    source_path: research/stonehill_indicators/extracted/Cross_Roads/Cross_Roads.ex4
+    source_type: ex4_only
+    status: approximation
+  exit:
+    name: crossroads
+    notes: Approximated from public description using highest/lowest WMA filters.
+    source_path: research/stonehill_indicators/extracted/Cross_Roads/Cross_Roads.ex4
+    source_type: ex4_only
+    status: approximation
+  volume_or_volatility_filter:
+    name: stiffness
+    notes: Ported from Stonehill MQ4 Period1/Period3/Period2 structure.
+    source_path: research/stonehill_indicators/extracted/Stiffness/Stiffness Indicator.mq4
+    source_type: mq4
+    status: source_port
+indicators:
+  baseline:
+    name: frama
+    params:
+      fc: 1
+      length: 10
+      sc: 198
+  c1:
+    name: reflex
+    params:
+      length: 20
+  c2:
+    name: crossroads
+    params:
+      lookback_period: 18
+      source: close
+      start_len: 1
+  exit:
+    name: crossroads
+    params:
+      lookback_period: 24
+      source: close
+      start_len: 2
+  volume_or_volatility_filter:
+    name: none
+    params: {}
+market:
+  base_asset: BTC
+  connector: binance_perpetual
+  quote_asset: USDT
+  timeframe: 1d
+  trading_pair: BTC-USDT
+risk:
+  account_equity: 100000.0
+  atr_length: 14
+  max_daily_loss_pct: 0.02
+  max_open_positions_per_pair: 1
+  max_total_drawdown_pct: 0.2
+  max_total_open_positions: 3
+  move_second_half_to_breakeven_after_tp1: true
+  risk_per_trade_pct: 0.02
+  stop_loss_atr_multiplier: 1.0
+  tp1_atr_multiplier: 1.0
+  use_two_half_positions: true
+strategy:
+  allow_continuation_trades: false
+  direction_mode: both
+  mode: backtest
+  name: algo5_cross_roads
