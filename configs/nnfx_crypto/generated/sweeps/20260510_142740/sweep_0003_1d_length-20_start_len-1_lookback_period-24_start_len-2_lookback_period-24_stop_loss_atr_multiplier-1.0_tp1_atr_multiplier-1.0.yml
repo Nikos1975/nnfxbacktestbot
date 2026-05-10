@@ -1,0 +1,69 @@
+strategy:
+  name: algo5_cross_roads
+  mode: backtest
+  direction_mode: both
+  allow_continuation_trades: false
+market:
+  connector: binance_perpetual
+  trading_pair: BTC-USDT
+  timeframe: 1d
+  quote_asset: USDT
+  base_asset: BTC
+data:
+  source: csv
+  path: data/nnfx_crypto/processed/BTC-USDT_1d.csv
+  start: '2018-01-01'
+  end: '2026-05-09'
+indicators:
+  baseline:
+    name: frama
+    params:
+      length: 10
+      fc: 1
+      sc: 198
+  c1:
+    name: reflex
+    params:
+      length: 20
+  c2:
+    name: crossroads
+    params:
+      start_len: 1
+      lookback_period: 24
+      source: close
+  volume_or_volatility_filter:
+    name: stiffness
+    params:
+      length: 60
+      threshold: 50.0
+  exit:
+    name: crossroads
+    params:
+      start_len: 2
+      lookback_period: 24
+      source: close
+risk:
+  account_equity: 100000
+  risk_per_trade_pct: 0.02
+  atr_length: 14
+  stop_loss_atr_multiplier: 1.0
+  tp1_atr_multiplier: 1.0
+  use_two_half_positions: true
+  move_second_half_to_breakeven_after_tp1: true
+  max_open_positions_per_pair: 1
+  max_total_open_positions: 3
+  max_daily_loss_pct: 0.02
+  max_total_drawdown_pct: 0.2
+execution:
+  order_type: market
+  fee_pct: 0.0006
+  slippage_pct: 0.0005
+  use_next_bar_open: true
+backtest:
+  warmup_bars: 300
+  initial_capital: 100000
+  export_trades_csv: true
+  export_equity_curve_csv: true
+  export_metrics_json: true
+  export_html_report: true
+  export_chart_png: true

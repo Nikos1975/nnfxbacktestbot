@@ -1,0 +1,38 @@
+{
+    "parameters": [
+        {
+            "type": "int",
+            "name": "Period1",
+            "default": "100"
+        },
+        {
+            "type": "ENUM_MA_METHOD",
+            "name": "Method1",
+            "default": "MODE_SMA"
+        },
+        {
+            "type": "int",
+            "name": "Period3",
+            "default": "60"
+        },
+        {
+            "type": "int",
+            "name": "Period2",
+            "default": "3"
+        },
+        {
+            "type": "ENUM_MA_METHOD",
+            "name": "Method2",
+            "default": "MODE_SMA"
+        }
+    ],
+    "buffers": 1,
+    "indicator_calls": [
+        "iMA"
+    ],
+    "warnings": [],
+    "sections": [
+        "Uses SetIndexBuffer",
+        "Has OnCalculate/start logic"
+    ]
+}

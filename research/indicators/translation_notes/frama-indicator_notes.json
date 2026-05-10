@@ -1,0 +1,21 @@
+{
+    "parameters": [
+        {
+            "type": "int",
+            "name": "PeriodFRAMA",
+            "default": "10"
+        },
+        {
+            "type": "int",
+            "name": "PriceType",
+            "default": "0"
+        }
+    ],
+    "buffers": 1,
+    "indicator_calls": [],
+    "warnings": [],
+    "sections": [
+        "Uses SetIndexBuffer",
+        "Has OnCalculate/start logic"
+    ]
+}

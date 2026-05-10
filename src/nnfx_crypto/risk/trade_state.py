@@ -16,6 +16,7 @@ class OpenTrade:
     entry_time: str | None = None
     first_half_closed: bool = False
     closed: bool = False
+    entry_context: dict | None = None
 
     @classmethod
     def open_long(
@@ -27,8 +28,9 @@ class OpenTrade:
         stop_price: float,
         tp1_price: float,
         entry_time: str | None = None,
+        entry_context: dict | None = None,
     ) -> "OpenTrade":
-        return cls(pair, "long", entry_index, entry_price, quantity, stop_price, tp1_price, entry_time)
+        return cls(pair, "long", entry_index, entry_price, quantity, stop_price, tp1_price, entry_time, False, False, entry_context)
 
     @classmethod
     def open_short(
@@ -40,13 +42,12 @@ class OpenTrade:
         stop_price: float,
         tp1_price: float,
         entry_time: str | None = None,
+        entry_context: dict | None = None,
     ) -> "OpenTrade":
-        return cls(pair, "short", entry_index, entry_price, quantity, stop_price, tp1_price, entry_time)
+        return cls(pair, "short", entry_index, entry_price, quantity, stop_price, tp1_price, entry_time, False, False, entry_context)
 
     @property
     def remaining_quantity(self) -> float:
-        if self.closed:
-            return 0.0
         if self.first_half_closed:
             return self.quantity / 2.0
         return self.quantity

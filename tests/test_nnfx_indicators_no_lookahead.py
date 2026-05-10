@@ -7,11 +7,11 @@ from nnfx_crypto.indicators.registry import get_indicator
 
 EXPECTED_COLUMNS = {
     "atr": ["atr"],
-    "frama": ["baseline_value", "baseline_signal"],
-    "reflex": ["reflex_value", "c1_signal"],
-    "stablefx": ["stablefx_value", "c2_signal"],
+    "frama": ["baseline_value"],
+    "reflex": ["reflex_value"],
+    "stablefx": ["stablefx_value"],
     "stiffness": ["stiffness_value", "filter_pass_long", "filter_pass_short"],
-    "crossroads": ["crossroads_fast", "crossroads_slow", "exit_signal"],
+    "crossroads": ["crossroads_green", "crossroads_magenta", "crossroads_signal", "crossroads_trend"],
 }
 
 
@@ -21,7 +21,7 @@ PARAMS = {
     "reflex": {"length": 20},
     "stablefx": {"length": 14, "signal_length": 5},
     "stiffness": {"length": 20, "threshold": 50.0},
-    "crossroads": {"fast_length": 2, "slow_length": 24},
+    "crossroads": {"start_len": 2, "lookback_period": 24},
 }
 
 
@@ -85,7 +85,6 @@ def test_frama_supports_stonehill_period_name_and_warmup():
 
     assert output["baseline_value"].iloc[:20].isna().all()
     assert output["baseline_value"].iloc[21:].notna().any()
-    assert set(output["baseline_signal"].dropna().unique()).issubset({-1, 0, 1})
 
 
 def test_frama_price_type_changes_source_price():

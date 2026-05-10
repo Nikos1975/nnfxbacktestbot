@@ -48,14 +48,14 @@ INDICATOR_METADATA = {
         status="approximation",
         source_type="ex4_only",
         source_path="research/stonehill_indicators/extracted/Cross_Roads/Cross_Roads.ex4",
-        notes="Downloaded archive contains compiled EX4 only; Python implementation uses EMA cross logic.",
+        notes="Approximated from public description using highest/lowest WMA filters.",
     ),
     "reflex": IndicatorMetadata(
         name="reflex",
         status="placeholder",
-        source_type="ex4_only",
-        source_path="research/stonehill_indicators/extracted/reflex/reflex.ex4",
-        notes="Downloaded archive contains compiled EX4 only; deterministic zero-cross placeholder.",
+        source_type="formula",
+        source_path=None,
+        notes="Ported from John Ehlers TASC Feb 2020 public formula. Replaces EX4-only placeholder.",
     ),
     "stablefx": IndicatorMetadata(
         name="stablefx",

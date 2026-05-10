@@ -17,7 +17,7 @@ class StiffnessIndicator:
             0.2 * close.rolling(ma_length, min_periods=ma_length).std()
         )
         above = (close > lower_band).astype(float)
-        stiffness = above.rolling(sum_length, min_periods=sum_length).sum() * 100.0 / sum_length
+        stiffness = above.rolling(sum_length, min_periods=sum_length).sum() * float(ma_length) / sum_length
         output["stiffness_value"] = stiffness
         output["stiffness_signal"] = stiffness.rolling(
             signal_length,

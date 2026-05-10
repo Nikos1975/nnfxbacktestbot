@@ -1,0 +1,93 @@
+You are working in D:\_projects\trading.
+
+Goal:
+Build a Streamlit research UI for the existing nnfx_crypto backtesting project.
+
+Important:
+- Do not rewrite the backtest engine.
+- Do not change strategy logic unless necessary.
+- Do not connect to live trading.
+- This is a research UI only.
+- Keep diffs minimal.
+- Prefer small helper files under src/nnfx_crypto/ui/.
+- Do not commit generated results.
+- Use existing config schema and existing backtest command.
+- Read existing files before editing.
+
+Known working command:
+.\.venv\Scripts\python.exe -m nnfx_crypto.backtest.run --config .\configs\nnfx_crypto\algo5_fractal_rigidity_btc_1h.yml
+
+Existing result artifacts:
+- metrics.json
+- summary.md
+- report.html
+- chart_equity_curve.png
+- chart_price_signals.png
+- trades.csv
+- equity_curve.csv
+- resolved_config.yml
+
+Build a Streamlit UI with these tabs:
+
+1. Results
+   - List all folders under results/nnfx_crypto/backtests/
+   - Select a run
+   - Display summary.md
+   - Display metrics.json
+   - Display chart_equity_curve.png
+   - Display chart_price_signals.png
+   - Display trades.csv
+   - Display equity_curve.csv
+   - Display resolved_config.yml
+   - Show file list for the selected run
+
+2. Edit Config
+   - List YAML configs under configs/nnfx_crypto/
+   - Load selected config
+   - Show raw YAML editor
+   - Also expose common fields as controls if they exist:
+     - symbol / pair
+     - timeframe
+     - start date
+     - end date
+     - baseline indicator
+     - c1 indicator
+     - c2 indicator
+     - volume_or_volatility_filter
+     - exit indicator
+     - ATR period
+     - ATR multiplier
+     - risk per trade
+     - initial capital
+     - fee
+     - slippage
+   - Preserve unknown YAML fields.
+   - Save edited config as a new file under configs/nnfx_crypto/generated/
+   - Do not overwrite original configs unless explicitly selected.
+
+3. Run Backtest
+   - Select a config from configs/nnfx_crypto/ and configs/nnfx_crypto/generated/
+   - Run:
+     python -m nnfx_crypto.backtest.run --config <selected-config>
+   - Use subprocess safely.
+   - Set PYTHONPATH to D:\_projects\trading\src if needed.
+   - Capture stdout and stderr.
+   - Show the generated result folder from stdout.
+   - After run completes, refresh result list.
+
+Implementation:
+- Add or update:
+  src/nnfx_crypto/ui/streamlit_app.py
+  src/nnfx_crypto/ui/result_loader.py
+  src/nnfx_crypto/ui/config_editor.py
+  src/nnfx_crypto/ui/runner.py
+
+Acceptance criteria:
+- The app starts with:
+  .\.venv\Scripts\python.exe -m streamlit run .\src\nnfx_crypto\ui\streamlit_app.py
+- Existing results can be viewed.
+- Existing configs can be loaded.
+- Edited configs can be saved to configs/nnfx_crypto/generated/.
+- A backtest can be launched from the UI.
+- The new result appears in the Results tab.
+- pytest still runs.

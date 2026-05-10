@@ -22,9 +22,4 @@ class StableFXIndicator:
         oscillator = output["close"] - ema
         signal = oscillator.ewm(span=signal_length, adjust=False, min_periods=signal_length).mean()
         output["stablefx_value"] = oscillator - signal
-        output["c2_signal"] = np.select(
-            [output["stablefx_value"] > 0, output["stablefx_value"] < 0],
-            [1, -1],
-            default=0,
-        ).astype(int)
         return output

@@ -61,6 +61,13 @@ class EventBacktester:
                 run_dir / "report.html",
                 indicator_metadata_for_config(self.config),
             )
+            
+        from nnfx_crypto.backtest.analysis import generate_distance_analysis
+        generate_distance_analysis(trades_df, run_dir)
+            
+        from nnfx_crypto.reports.run_settings_writer import write_run_settings_summary
+        write_run_settings_summary(run_dir)
+
         return BacktestResult(run_dir=run_dir, metrics=metrics)
 
     def _apply_data_window(self, frame: pd.DataFrame) -> pd.DataFrame:
@@ -171,6 +178,7 @@ class EventBacktester:
                     entry_price = float(next_row["open"]) if self.config.execution.use_next_bar_open else mark_price
                     entry_price = self._slipped_price(entry_price, intent.side, is_entry=True)
                     plan = risk_model.plan_entry(intent.side, entry_price, float(atr))
+                    entry_context = self._extract_context(row, "entry_")
                     if intent.side == "long":
                         open_trades.append(OpenTrade.open_long(
                             self.config.market.trading_pair,
@@ -180,6 +188,7 @@ class EventBacktester:
                             plan.stop_price,
                             plan.tp1_price,
                             str(next_row["timestamp"]),
+                            entry_context=entry_context,
                         ))
                     else:
                         open_trades.append(OpenTrade.open_short(
@@ -190,6 +199,7 @@ class EventBacktester:
                             plan.stop_price,
                             plan.tp1_price,
                             str(next_row["timestamp"]),
+                            entry_context=entry_context,
                         ))
 
             equity_rows.append({
@@ -239,6 +249,19 @@ class EventBacktester:
             return (mark_price - trade.entry_price) * trade.remaining_quantity
         return (trade.entry_price - mark_price) * trade.remaining_quantity
 
+    def _extract_context(self, row: pd.Series, prefix: str) -> dict:
+        context = {}
+        fields = [
+            "sma_9", "sma_20", "sma_50", "sma_200", "atr_14", "atr_pct",
+            "distance_sma_9_pct", "distance_sma_20_pct", "distance_sma_50_pct", "distance_sma_200_pct",
+            "distance_sma_9_atr", "distance_sma_20_atr", "distance_sma_50_atr", "distance_sma_200_atr",
+            "ma_stack_state"
+        ]
+        for field in fields:
+            val = row.get(field, 0.0) if field != "ma_stack_state" else row.get(field, "")
+            context[f"{prefix}{field}"] = val
+        return context
+
     def _record(
         self,
         trade: OpenTrade,
@@ -251,6 +274,9 @@ class EventBacktester:
         fees = (trade.entry_price * quantity + exit_price * quantity) * self.config.execution.fee_pct
         slippage = abs(exit_price * quantity * self.config.execution.slippage_pct)
         pnl = self._close_pnl(trade, exit_price, quantity)
+        exit_context = self._extract_context(row, "exit_")
+        entry_context = trade.entry_context or self._extract_context(row, "entry_")
+        
         return TradeRecord(
             pair=trade.pair,
             side=trade.side,
@@ -263,6 +289,8 @@ class EventBacktester:
             fees=fees,
             slippage=slippage,
             close_reason=reason,
+            **entry_context,
+            **exit_context,
         )
 
     def _slipped_price(self, price: float, side: str, is_entry: bool) -> float:

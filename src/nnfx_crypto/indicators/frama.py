@@ -49,13 +49,8 @@ class FRAMAIndicator:
                 frama_arr[i] = a * price_arr[i] + (1.0 - a) * (price_arr[i - 1] if np.isnan(prev) else prev)
 
         frama = pd.Series(frama_arr, index=output.index)
+        output["frama_value"] = frama # Compatibility
         output["baseline_value"] = frama
-        output["baseline_signal"] = np.select(
-            [close > frama, close < frama],
-            [1, -1],
-            default=0,
-        ).astype(int)
-        output.loc[frama.isna(), "baseline_signal"] = 0
         return output
 
 
